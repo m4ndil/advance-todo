@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
 class Login extends Controller
+
 {
-    public function loginUser(Request $request)
+    public function loginUser(LoginRequest $request)
     {
-        $validatedData = $request->validate(
-            [
-                "name" => "required",
-                "password" => "required|min:8"
-            ]
-        );
-        // $input= User::where(["name" => $validatedData['name'], "password" => $validatedData['password']])->first();
+        $validatedData = $request->validated();
         if (Auth::attempt($validatedData)) {
-            //TODO::AccessToken
-            return response()->json(["message" => "Success", "data" => $validatedData]);;
+            $user = User::where(["name" => $validatedData['name']])->first();
+            $token = $user->createToken('AdvanceTodo')->accessToken;
+            return response()->json(["message" => "Success", "data" => [
+                'user' => $user,
+                'access_token' => $token
+            ]]);;
         }
 
         return response()->json(["message" => "Fail"]);
